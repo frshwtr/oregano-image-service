@@ -1,0 +1,10 @@
+[package]
+name = "oregano-image-service"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+actix-web = "4.8.0"
+reqwest = { version = "0.12.5", features = ["default", "blocking",] }
+serde = { version = "1.0.204", features = ['derive'] }
+image = "0.24.9"
