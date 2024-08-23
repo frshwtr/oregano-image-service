@@ -14,7 +14,7 @@ struct PathParams {
 
 #[derive(Deserialize)]
 struct QueryParams {
-    width: u32,
+    width: u32,//TODO: make both these optional
     height: u32,
 }
 
