@@ -22,7 +22,7 @@ struct QueryParams {
 async fn raw(params: web::Path<PathParams>, query: web::Query<QueryParams>, client: web::Data<Arc<Client>>) -> impl Responder {
     match get_image(&params.source, client.get_ref().clone()).await {
         Ok(resp) => {
-            match image_service::resize((&resp).to_vec(), ImageDimensions{width: Some(query.width), height: Some(query.height)}) {
+            match image_service::resize((&resp).to_vec(), ImageDimensions{width: Some(query.width), height: Some(query.height)}, None) {
                 Ok(result) => {
                     actix_web::HttpResponse::Ok()
                         .content_type("image/jpeg")
