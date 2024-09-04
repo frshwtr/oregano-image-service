@@ -5,6 +5,7 @@ use image::{DynamicImage, ImageFormat};
 
 #[derive(Debug, PartialEq)]
 pub enum Fit {
+    Contain,
     Pad
 }
 
@@ -14,6 +15,7 @@ impl FromStr for Fit {
     fn from_str(input: &str) -> Result<Fit, Self::Err> {
         match input {
             "pad" => Ok(Fit::Pad),
+            "contain" => Ok(Fit::Contain),
             _ => Err(())
         }
     }
