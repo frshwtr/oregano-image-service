@@ -1,5 +1,6 @@
 use std::error::Error;
 use std::io::Cursor;
+use std::str::FromStr;
 use image::{DynamicImage, ImageFormat};
 
 pub struct ImageDimensions {
@@ -7,11 +8,24 @@ pub struct ImageDimensions {
     pub height: Option<u32>
 }
 
+#[derive(Debug, PartialEq)]
 pub enum Fit {
     Pad
 }
+
+impl FromStr for Fit {
+    type Err = ();
+
+    fn from_str(input: &str) -> Result<Fit, Self::Err> {
+        match input.as_ref() {
+            "pad" => Ok(Fit::Pad),
+            _ => Err(())
+        }
+    }
+}
+
 pub struct ImageTransformOptions {
-    fit: Option<Fit>,
+    pub fit: Option<Fit>,
 }
 
 pub fn resize(img: Vec<u8>, target_dimensions: ImageDimensions, options: Option<ImageTransformOptions>) -> Result<Vec<u8>, Box<dyn Error>> {
@@ -23,7 +37,7 @@ pub fn resize(img: Vec<u8>, target_dimensions: ImageDimensions, options: Option<
     if let Some(opts) = options {
         resized_img = match opts.fit {
             Some(Fit::Pad) => img_instance.resize(resize_width, resize_height, image::imageops::FilterType::Lanczos3),
-            None => img_instance.resize_exact(resize_width, resize_height, image::imageops::FilterType::Lanczos3)
+            _ => img_instance.resize_exact(resize_width, resize_height, image::imageops::FilterType::Lanczos3)
         };
     } else {
         resized_img = img_instance.resize_exact(resize_width, resize_height, image::imageops::FilterType::Lanczos3); //TODO: can this be refactored to remove the duplicated call?
