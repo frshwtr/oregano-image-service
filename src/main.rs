@@ -6,7 +6,7 @@ use serde::{Deserialize};
 use reqwest::Client;
 use std::sync::Arc;
 use actix_web::web::Bytes;
-use crate::image_service::{Fit, ImageDimensions, ImageTransformOptions};
+use crate::image_service::{Fit, ImageTransformOptions};
 
 #[derive(Deserialize)]
 struct PathParams {
@@ -32,7 +32,7 @@ async fn raw(params: web::Path<PathParams>, query: web::Query<QueryParams>, clie
 
     match get_image(&params.source, client.get_ref().clone()).await {
         Ok(resp) => {
-            match image_service::resize((&resp).to_vec(), ImageDimensions{width: query.width, height: query.height}, Some(ImageTransformOptions{fit: fit_mode})) {
+            match image_service::resize((&resp).to_vec(),  ImageTransformOptions{fit: fit_mode, width: query.width, height: query.height}) {
                 Ok(result) => {
                     actix_web::HttpResponse::Ok()
                         .content_type("image/jpeg")
