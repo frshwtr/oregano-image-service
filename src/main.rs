@@ -20,12 +20,6 @@ struct QueryParams {
     fit: Option<String>
 }
 
-impl Default for QueryParams {
-    fn default() -> Self {
-        QueryParams { width: None, height: None, fit: None }
-    }
-}
-
 #[get("/raw/{source}")]
 async fn raw(params: web::Path<PathParams>, query: web::Query<QueryParams>, client: web::Data<Arc<Client>>) -> impl Responder {
     let fit_mode: Option<Fit> = query.fit.as_ref().map(|fit| Fit::from_str(fit.as_str()).unwrap());
