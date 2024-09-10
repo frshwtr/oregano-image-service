@@ -1,4 +1,5 @@
 mod image_service;
+mod transforms;
 
 use std::str::FromStr;
 use actix_web::{get, web, App, HttpServer, Responder};
@@ -15,7 +16,7 @@ struct PathParams {
 
 #[derive(Deserialize)]
 struct QueryParams {
-    width: Option<u32>,//TODO: make both these optional
+    width: Option<u32>,
     height: Option<u32>,
     fit: Option<String>
 }
@@ -26,7 +27,7 @@ async fn raw(params: web::Path<PathParams>, query: web::Query<QueryParams>, clie
 
     match get_image(&params.source, client.get_ref().clone()).await {
         Ok(resp) => {
-            match image_service::resize((&resp).to_vec(),  ImageTransformOptions{fit: fit_mode, width: query.width, height: query.height}) {
+            match image_service::resize_service((&resp).to_vec(), ImageTransformOptions{fit: fit_mode, width: query.width, height: query.height}) {
                 Ok(result) => {
                     actix_web::HttpResponse::Ok()
                         .content_type("image/jpeg")
