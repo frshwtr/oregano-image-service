@@ -33,7 +33,6 @@ mod test {
     use std::{fmt, fs};
     use image::DynamicImage;
     use rstest::rstest;
-    use crate::image_service::{Fit, ImageTransformOptions, resize_service};
     use crate::transforms::resize::resize_with_pad;
 
     #[derive(Debug)]
@@ -56,18 +55,20 @@ mod test {
             }
         }
     }
-    //Todo: fix ignored tests
-    #[rstest]
-    #[ignore]
-    #[case(300)]
-    #[ignore]
-    #[case(900)]
-    fn preserves_aspect_ratio_when_fit_is_pad(#[case] height: u32) -> Result<(), Box<dyn Error>> {
-        let test_img: Vec<u8> = fs::read("test/assets/test_img.png").unwrap();
-        let result = resize_service(test_img, ImageTransformOptions { width: Some(height), height: None, fit: Some(Fit::Pad) });
-        let result_img = image::load_from_memory(&result.unwrap())?;
 
-        let result_aspect_ratio: u32 = result_img.clone().width() / result_img.height();
+
+    #[rstest]
+    #[case(100,300)]
+    #[case(100, 400)]
+    #[case(140, 900)]
+    fn preserves_aspect_ratio_when_fit_is_pad(#[case] width: u32 ,#[case] height: u32) -> Result<(), Box<dyn Error>> {
+        let test_img: Vec<u8> = fs::read("test/assets/test_img.png").unwrap();
+        let test_dyn_img: DynamicImage = image::load_from_memory(&test_img).unwrap();
+        let result = resize_with_pad(&test_dyn_img, width, height);
+
+        let resized_img_pad_size: u32 = result.height() - test_dyn_img.height();
+        let resized_img_size: u32 = result.height() - resized_img_pad_size;
+        let result_aspect_ratio: u32 = result.clone().width() / resized_img_size;
 
         if result_aspect_ratio == 1 {
             Ok(())
