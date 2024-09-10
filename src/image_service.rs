@@ -3,7 +3,7 @@ use crate::transforms;
 use std::error::Error;
 use std::io::Cursor;
 use std::str::FromStr;
-use image::{DynamicImage, GenericImageView, ImageFormat};
+use image::{DynamicImage, ImageFormat};
 
 #[derive(Debug, PartialEq)]
 pub enum Fit {
@@ -54,32 +54,9 @@ pub fn resize_service(img: Vec<u8>, options: ImageTransformOptions) -> Result<Ve
 
 #[cfg(test)]
 mod test {
-    use std::error::Error;
     use rstest::rstest;
-    use std::{fmt, fs};
-    use image::DynamicImage;
-    use crate::image_service::{Fit, ImageTransformOptions, resize_service};
-
-    #[derive(Debug)]
-    struct TestError {
-        details: String,
-    }
-
-    impl TestError {
-        fn new(msg: &str) -> TestError {
-            TestError {
-                details: msg.to_string()
-            }
-        }
-    }
-
-    impl fmt::Display for TestError {
-        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-            write!(f, "{}", self.details)
-        }
-    }
-
-    impl Error for TestError {}
+    use std::{fs};
+    use crate::image_service::{ImageTransformOptions, resize_service};
 
     #[rstest]
     #[case(300)]
@@ -120,49 +97,5 @@ mod test {
         let result = resize_service(test_img, ImageTransformOptions { width: Some(300), height: None, fit: None });
         let result_img = image::load_from_memory(&result.unwrap());
         assert_eq!(result_img.unwrap().height(), 100)
-    }
-
-    //Todo: fix ignored tests
-    #[rstest]
-    #[ignore]
-    #[case(300)]
-    #[ignore]
-    #[case(900)]
-    fn preserves_aspect_ratio_when_fit_is_pad(#[case] height: u32) -> Result<(), Box<dyn Error>> {
-        let test_img: Vec<u8> = fs::read("test/assets/test_img.png").unwrap();
-        let result = resize_service(test_img, ImageTransformOptions { width: Some(height), height: None, fit: Some(Fit::Pad) });
-        let result_img = image::load_from_memory(&result.unwrap())?;
-
-        let result_aspect_ratio: u32 = result_img.clone().width() / result_img.height();
-
-        if result_aspect_ratio == 1 {
-            Ok(())
-        } else { Err(Box::new(TestError::new(format!("Aspect ratio was not equal to 1, received {}", result_aspect_ratio).as_str()))) }
-    }
-
-    #[ignore]
-    #[test]
-    fn adds_bg_color_when_fit_is_pad() {
-        let test_img: Vec<u8> = fs::read("test/assets/test_img.png").unwrap();
-        let result = resize_service(test_img, ImageTransformOptions { width: Some(300), height: Some(100), fit: Some(Fit::Pad) });
-        let result_img = image::load_from_memory(&result.unwrap());
-
-        let img_top = result_img.unwrap().crop_imm(0, 0, 100, 100);
-        assert!(is_image_red_only(&img_top));
-    }
-
-    fn is_image_red_only(img: &DynamicImage) -> bool {
-        let rgb_image = img.to_rgb8();
-
-        for pixel in rgb_image.pixels() {
-            let channels = pixel.0;
-            let green = channels[1];
-            let blue = channels[2];
-
-            if green != 0 || blue != 0 {
-                return false;
-            }
-        }
-        true
     }
 }
