@@ -43,7 +43,6 @@ pub fn resize_service(img: Vec<u8>, options: ImageTransformOptions) -> Result<Ve
         _ => img_instance.resize_exact(resize_width, resize_height, image::imageops::FilterType::Lanczos3)
     };
 
-
     let mut buf = Vec::new();
     let mut cursor = Cursor::new(&mut buf);
 
@@ -91,6 +90,7 @@ mod test {
         let result_img = image::load_from_memory(&result.unwrap());
         assert_eq!(result_img.unwrap().width(), 100)
     }
+
     #[test]
     fn preserves_height_when_none() {
         let test_img: Vec<u8> = fs::read("test/assets/test_img.png").unwrap();

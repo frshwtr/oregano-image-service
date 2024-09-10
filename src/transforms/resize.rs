@@ -86,6 +86,7 @@ mod test {
         assert!(is_image_red_only(&img_top));
         assert!(is_image_red_only(&img_bottom));
     }
+
     #[test]
     fn adds_bg_color_to_width_when_fit_is_pad() {
         let test_img: Vec<u8> = fs::read("test/assets/test_img.png").unwrap();
