@@ -3,7 +3,7 @@ use crate::transforms;
 use std::error::Error;
 use std::io::Cursor;
 use std::str::FromStr;
-use image::{DynamicImage, ImageFormat};
+use image::{DynamicImage, ImageFormat, Rgb};
 
 #[derive(Debug, PartialEq)]
 pub enum Fit {
@@ -27,6 +27,7 @@ pub struct ImageTransformOptions {
     pub fit: Option<Fit>,
     pub width: Option<u32>,
     pub height: Option<u32>,
+    pub bg_color: Option<Rgb<u8>>
 }
 
 pub fn resize_service(img: Vec<u8>, options: ImageTransformOptions) -> Result<Vec<u8>, Box<dyn Error>> {
@@ -38,7 +39,7 @@ pub fn resize_service(img: Vec<u8>, options: ImageTransformOptions) -> Result<Ve
 
     resized_img = match options.fit {
         Some(Fit::Pad) => {
-            transforms::resize::resize_with_pad(&img_instance, resize_width, resize_height)
+            transforms::resize::resize_with_pad(&img_instance, resize_width, resize_height, options.bg_color)
         }
         _ => img_instance.resize_exact(resize_width, resize_height, image::imageops::FilterType::Lanczos3)
     };
@@ -65,7 +66,7 @@ mod test {
     #[case(1)]
     fn resizes_width(#[case] width: u32) {
         let test_img: Vec<u8> = fs::read("test/assets/test_img.png").unwrap();
-        let result = resize_service(test_img, ImageTransformOptions { width: Some(width), height: Some(300), fit: None });
+        let result = resize_service(test_img, ImageTransformOptions { width: Some(width), height: Some(300), fit: None, bg_color: None });
         let result_img = image::load_from_memory(&result.unwrap());
         assert_eq!(result_img.unwrap().width(), width);
     }
@@ -78,7 +79,7 @@ mod test {
     #[case(1)]
     fn resizes_height(#[case] height: u32) {
         let test_img: Vec<u8> = fs::read("test/assets/test_img.png").unwrap();
-        let result = resize_service(test_img, ImageTransformOptions { width: Some(300), height: Some(height), fit: None });
+        let result = resize_service(test_img, ImageTransformOptions { width: Some(300), height: Some(height), fit: None, bg_color: None });
         let result_img = image::load_from_memory(&result.unwrap());
 
         assert_eq!(result_img.unwrap().height(), height)
@@ -86,7 +87,7 @@ mod test {
     #[test]
     fn preserves_width_when_none() {
         let test_img: Vec<u8> = fs::read("test/assets/test_img.png").unwrap();
-        let result = resize_service(test_img, ImageTransformOptions { width: None, height: Some(300), fit: None });
+        let result = resize_service(test_img, ImageTransformOptions { width: None, height: Some(300), fit: None, bg_color: None });
         let result_img = image::load_from_memory(&result.unwrap());
         assert_eq!(result_img.unwrap().width(), 100)
     }
@@ -94,7 +95,7 @@ mod test {
     #[test]
     fn preserves_height_when_none() {
         let test_img: Vec<u8> = fs::read("test/assets/test_img.png").unwrap();
-        let result = resize_service(test_img, ImageTransformOptions { width: Some(300), height: None, fit: None });
+        let result = resize_service(test_img, ImageTransformOptions { width: Some(300), height: None, fit: None, bg_color: None });
         let result_img = image::load_from_memory(&result.unwrap());
         assert_eq!(result_img.unwrap().height(), 100)
     }
