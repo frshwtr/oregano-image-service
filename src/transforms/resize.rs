@@ -108,8 +108,8 @@ mod test {
         let img_top = result.crop_imm(0, 0, 100, 100);
         let img_bottom = result.crop_imm(200, 0, 100, 100);
 
-        assert!(is_image_mostly_color(&img_top, bg_color));
-        assert!(is_image_mostly_color(&img_bottom, bg_color));
+        assert!(is_image_color(&img_top, bg_color));
+        assert!(is_image_color(&img_bottom, bg_color));
     }
 
     fn is_image_red_only(img: &DynamicImage) -> bool {
@@ -126,7 +126,7 @@ mod test {
         }
         true
     }
-    fn is_image_mostly_color(img: &DynamicImage, color: Rgb<u8>) -> bool {
+    fn is_image_color(img: &DynamicImage, color: Rgb<u8>) -> bool {
         let rgb_image = img.to_rgb8();
         let target_colors = color.channels();
 
@@ -147,6 +147,6 @@ mod test {
         }
         let ratio = if counter_true > 0.0 { (counter_true + counter_false) / counter_true}  else { 0.0 };
         println!("ratio is {}", ratio);
-        ratio > 0.9
+        ratio >= 1.0
     }
 }
