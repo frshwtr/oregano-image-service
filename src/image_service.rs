@@ -1,3 +1,7 @@
+mod chain;
+mod transform_processor;
+mod canvas;
+
 use crate::transforms;
 
 use std::error::Error;
