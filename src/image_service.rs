@@ -1,6 +1,5 @@
 mod chain;
 mod transform_processor;
-mod canvas;
 
 use crate::transforms;
 
@@ -60,7 +59,7 @@ pub fn resize_service(img: Vec<u8>, options: ImageTransformOptions) -> Result<Ve
 mod test {
     use rstest::rstest;
     use std::{fs};
-    use crate::image_service::{ImageTransformOptions, resize_service};
+    use crate::image_service_chain::{ImageTransformOptions, resize_service};
 
     #[rstest]
     #[case(300)]
@@ -69,7 +68,7 @@ mod test {
     #[case(6143)]
     #[case(1)]
     fn resizes_width(#[case] width: u32) {
-        let test_img: Vec<u8> = fs::read("test/assets/test_img.png").unwrap();
+        let test_img: Vec<u8> = fs::read("../../test/assets/test_img.png").unwrap();
         let result = resize_service(test_img, ImageTransformOptions { width: Some(width), height: Some(300), fit: None, bg_color: None });
         let result_img = image::load_from_memory(&result.unwrap());
         assert_eq!(result_img.unwrap().width(), width);
@@ -82,7 +81,7 @@ mod test {
     #[case(6132)]
     #[case(1)]
     fn resizes_height(#[case] height: u32) {
-        let test_img: Vec<u8> = fs::read("test/assets/test_img.png").unwrap();
+        let test_img: Vec<u8> = fs::read("../test/assets/test_img.png").unwrap();
         let result = resize_service(test_img, ImageTransformOptions { width: Some(300), height: Some(height), fit: None, bg_color: None });
         let result_img = image::load_from_memory(&result.unwrap());
 

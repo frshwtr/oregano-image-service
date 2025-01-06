@@ -1,4 +1,4 @@
-use crate::image_service::chain::ProcessableImage;
+use crate::chain::ProcessableImage;
 
 pub trait TransformProcessor {
     fn execute(&mut self, processable_image: &mut ProcessableImage) {

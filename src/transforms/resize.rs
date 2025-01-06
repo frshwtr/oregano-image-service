@@ -1,13 +1,38 @@
+use std::arch::aarch64::vmulxs_f32;
 use image::{DynamicImage, GenericImageView, Pixel, Rgb, RgbImage};
 
-pub fn resize_with_pad(img_instance: &DynamicImage, resize_width: u32, resize_height: u32, bg_color: Option<Rgb<u8>>) -> DynamicImage {
-    let mut img_canvas = RgbImage::new(resize_width, resize_height);
+use crate::chain::{ProcessableImage, ProcessRecord, ProcessOptions, ResizeOptions};
+use crate::canvas::Canvas;
+use crate::image_service::Fit;
 
-    for x in 0..resize_width {
-        for y in 0..resize_height {
-            img_canvas.put_pixel(x, y, bg_color.unwrap_or(Rgb([255u8, 0u8, 0u8])));
-        }
-    }
+pub fn resize_with_pad(img_instance: &DynamicImage, resize_width: u32, resize_height: u32, bg_color: Option<Rgb<u8>>) -> DynamicImage {
+    let mut img_for_processing = ProcessableImage {
+        src_img: img_instance.clone(),
+        out_img: None,
+        process_record: ProcessRecord {
+            is_canvas_processed: false,
+            is_image_resized: false,
+            is_bg_color_applied: false,
+        },
+        process_options: ProcessOptions { resize: ResizeOptions {
+            w: resize_width,
+            h: resize_height,
+            mode: Fit::Pad,
+        }, bg_color },
+    };
+    let canvas = Canvas::default();
+
+
+    canvas.execute(&mut img_for_processing);
+
+    let mut img_canvas = img_for_processing.out_img.unwrap();
+    // let mut img_canvas = RgbImage::new(resize_width, resize_height);
+    //
+    // for x in 0..resize_width {
+    //     for y in 0..resize_height {
+    //         img_canvas.put_pixel(x, y, bg_color.unwrap_or(Rgb([255u8, 0u8, 0u8])));
+    //     }
+    // }
 
     let img_overlay = img_instance.resize(resize_width, resize_height, image::imageops::FilterType::Lanczos3);
     let (overlay_width, overlay_height) = img_overlay.dimensions();
