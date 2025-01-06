@@ -1,5 +1,9 @@
-use crate::chain::ProcessableImage;
+pub mod canvas;
+pub mod resize;
 
+pub use canvas::Canvas;
+
+use crate::chain::ProcessableImage;
 pub trait TransformProcessor {
     fn execute(&mut self, processable_image: &mut ProcessableImage) {
         self.handle(processable_image);

@@ -1,7 +1,4 @@
-mod chain;
-mod transform_processor;
-
-use crate::transforms;
+use crate::transforms::resize;
 
 use std::error::Error;
 use std::io::Cursor;
@@ -39,10 +36,9 @@ pub fn resize_service(img: Vec<u8>, options: ImageTransformOptions) -> Result<Ve
     let resize_height: u32 = if options.height.is_some() { options.height.unwrap() } else { img_instance.height() };
     let resized_img: DynamicImage;
 
-
     resized_img = match options.fit {
         Some(Fit::Pad) => {
-            transforms::resize::resize_with_pad(&img_instance, resize_width, resize_height, options.bg_color)
+            resize::resize_with_pad(&img_instance, resize_width, resize_height, options.bg_color)
         }
         _ => img_instance.resize_exact(resize_width, resize_height, image::imageops::FilterType::Lanczos3)
     };
@@ -59,7 +55,7 @@ pub fn resize_service(img: Vec<u8>, options: ImageTransformOptions) -> Result<Ve
 mod test {
     use rstest::rstest;
     use std::{fs};
-    use crate::image_service_chain::{ImageTransformOptions, resize_service};
+    use crate::image_service::{ImageTransformOptions, resize_service};
 
     #[rstest]
     #[case(300)]

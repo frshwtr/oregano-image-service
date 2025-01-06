@@ -16,7 +16,7 @@ pub struct ProcessRecord  {
 
 pub struct ProcessOptions {
     pub resize: ResizeOptions,
-    pub bg_color: Option<Rgb<u8>>
+    pub  bg_color: Option<Rgb<u8>>
 }
 
 pub struct ResizeOptions {
