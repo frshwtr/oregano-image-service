@@ -4,6 +4,9 @@ use std::error::Error;
 use std::io::Cursor;
 use std::str::FromStr;
 use image::{DynamicImage, ImageFormat, Rgb};
+use crate::chain::{ProcessableImage, ProcessOptions, ProcessRecord, ResizeOptions};
+use crate::transform_processor::{Canvas, TransformProcessor};
+use crate::transform_processor::resize::Resize;
 
 #[derive(Debug, PartialEq)]
 pub enum Fit {
@@ -34,14 +37,27 @@ pub fn resize_service(img: Vec<u8>, options: ImageTransformOptions) -> Result<Ve
     let img_instance = image::load_from_memory(&img)?;
     let resize_width: u32 = if options.width.is_some() { options.width.unwrap() } else { img_instance.width() };
     let resize_height: u32 = if options.height.is_some() { options.height.unwrap() } else { img_instance.height() };
-    let resized_img: DynamicImage;
 
-    resized_img = match options.fit {
-        Some(Fit::Pad) => {
-            resize::resize_with_pad(&img_instance, resize_width, resize_height, options.bg_color)
-        }
-        _ => img_instance.resize_exact(resize_width, resize_height, image::imageops::FilterType::Lanczos3)
+
+    let mut img_for_processing = ProcessableImage {
+        src_img: img_instance.clone(),
+        out_img: None,
+        process_record: ProcessRecord {
+            is_canvas_processed: false,
+            is_image_resized: false,
+            is_bg_color_applied: false,
+        },
+        process_options: ProcessOptions { resize: ResizeOptions {
+            w: resize_width,
+            h: resize_height,
+            mode: Fit::Pad,
+        }, bg_color: options.bg_color },
     };
+    let mut canvas = Canvas::new(Resize::default());
+
+    canvas.execute(&mut img_for_processing);
+
+    let resized_img: DynamicImage = DynamicImage::from(img_for_processing.out_img.unwrap());
 
     let mut buf = Vec::new();
     let mut cursor = Cursor::new(&mut buf);
