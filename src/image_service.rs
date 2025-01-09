@@ -1,4 +1,4 @@
-use crate::transforms;
+use crate::transforms::resize;
 
 use std::error::Error;
 use std::io::Cursor;
@@ -36,10 +36,9 @@ pub fn resize_service(img: Vec<u8>, options: ImageTransformOptions) -> Result<Ve
     let resize_height: u32 = if options.height.is_some() { options.height.unwrap() } else { img_instance.height() };
     let resized_img: DynamicImage;
 
-
     resized_img = match options.fit {
         Some(Fit::Pad) => {
-            transforms::resize::resize_with_pad(&img_instance, resize_width, resize_height, options.bg_color)
+            resize::resize_with_pad(&img_instance, resize_width, resize_height, options.bg_color)
         }
         _ => img_instance.resize_exact(resize_width, resize_height, image::imageops::FilterType::Lanczos3)
     };
@@ -65,7 +64,7 @@ mod test {
     #[case(6143)]
     #[case(1)]
     fn resizes_width(#[case] width: u32) {
-        let test_img: Vec<u8> = fs::read("test/assets/test_img.png").unwrap();
+        let test_img: Vec<u8> = fs::read("../../test/assets/test_img.png").unwrap();
         let result = resize_service(test_img, ImageTransformOptions { width: Some(width), height: Some(300), fit: None, bg_color: None });
         let result_img = image::load_from_memory(&result.unwrap());
         assert_eq!(result_img.unwrap().width(), width);
@@ -78,7 +77,7 @@ mod test {
     #[case(6132)]
     #[case(1)]
     fn resizes_height(#[case] height: u32) {
-        let test_img: Vec<u8> = fs::read("test/assets/test_img.png").unwrap();
+        let test_img: Vec<u8> = fs::read("../test/assets/test_img.png").unwrap();
         let result = resize_service(test_img, ImageTransformOptions { width: Some(300), height: Some(height), fit: None, bg_color: None });
         let result_img = image::load_from_memory(&result.unwrap());
 

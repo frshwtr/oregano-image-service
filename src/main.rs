@@ -1,10 +1,12 @@
-mod image_service;
+pub mod image_service;
+mod transform_processor;
 mod transforms;
+mod chain;
 
 use std::str::FromStr;
 use actix_web::{get, web, App, HttpServer, Responder};
 use hex_color::HexColor;
-use serde::{Deserialize};
+use serde::Deserialize;
 use reqwest::Client;
 use std::sync::Arc;
 use actix_web::web::Bytes;
