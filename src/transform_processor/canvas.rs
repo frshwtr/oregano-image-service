@@ -1,10 +1,10 @@
-
-use image::{RgbImage};
-use crate::transform_processor::{ TransformProcessor, ProcessableImage, into_next};
+use crate::image_service::Fit;
+use crate::transform_processor::{into_next, ProcessableImage, TransformProcessor};
+use image::RgbImage;
 
 #[derive(Default)]
 pub struct Canvas {
-    next: Option<Box<dyn TransformProcessor>>
+    next: Option<Box<dyn TransformProcessor>>,
 }
 
 impl Canvas {
@@ -17,8 +17,13 @@ impl Canvas {
 impl TransformProcessor for Canvas {
     fn handle(&mut self, processable_image: &mut ProcessableImage) {
         if !processable_image.process_record.is_canvas_processed {
-                    processable_image.out_img = Some(RgbImage::new(processable_image.process_options.resize.w, processable_image.process_options.resize.h));
-                    processable_image.process_record.is_canvas_processed = true;
+            if processable_image.process_options.resize.mode == Fit::Pad {
+                processable_image.out_img = Some(RgbImage::new(
+                    processable_image.process_options.resize.w,
+                    processable_image.process_options.resize.h,
+                ));
+            }
+            processable_image.process_record.is_canvas_processed = true;
         }
     }
 
