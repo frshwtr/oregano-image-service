@@ -1,6 +1,6 @@
 use crate::image_service::Fit;
 use crate::transform_processor::{into_next, ProcessableImage, TransformProcessor};
-use image::RgbImage;
+use image::{ImageBuffer, Rgb};
 
 #[derive(Default)]
 pub struct Canvas {
@@ -18,11 +18,12 @@ impl TransformProcessor for Canvas {
     fn handle(&mut self, processable_image: &mut ProcessableImage) {
         if !processable_image.process_record.is_canvas_processed {
             if processable_image.process_options.resize.mode == Fit::Pad {
-                processable_image.out_img = Some(RgbImage::new(
+                processable_image.out_img = Some(ImageBuffer::from_pixel(
                     processable_image.process_options.resize.w,
                     processable_image.process_options.resize.h,
-                ));
+                    processable_image.process_options.bg_color.unwrap_or(Rgb([0,0,0]))));
             }
+            processable_image.process_record.is_bg_color_applied = true;
             processable_image.process_record.is_canvas_processed = true;
         }
     }
