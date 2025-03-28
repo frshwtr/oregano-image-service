@@ -10,7 +10,7 @@ use reqwest::Client;
 use std::sync::Arc;
 use actix_web::web::Bytes;
 use image::Rgb;
-use crate::image_service::{Fit, ImageTransformOptions};
+use crate::image_service::{Fit, Format, ImageTransformOptions};
 
 #[derive(Deserialize)]
 struct PathParams {
@@ -23,31 +23,38 @@ struct QueryParams {
     height: Option<u32>,
     fit: Option<String>,
     bgcolor: Option<String>,
-    dpr: Option<u8>
+    dpr: Option<u8>,
+    format: Option<String>,
 }
 
 #[get("/raw/{source}")]
 async fn raw(params: web::Path<PathParams>, query: web::Query<QueryParams>, client: web::Data<Arc<Client>>) -> impl Responder {
     let fit_mode: Option<Fit> = query.fit.as_ref().map(|fit| Fit::from_str(fit.as_str()).unwrap());
+    let format: Option<Format> = query.format.as_ref().map(|format| Format::from_str(format.as_str()).unwrap());
+
     let bg_color: Option<Rgb<u8>> = match query.bgcolor.as_ref() {
         Some(color) => {
             match HexColor::parse_rgb(format!("#{}", color).as_str()) {
-                Ok(color) => { Some(Rgb([color.r, color.g, color.b]))},
+                Ok(color) => { Some(Rgb([color.r, color.g, color.b])) }
                 Err(_) => { None }
             }
-
-        },
+        }
         None => None
     };
 
     match get_image(&params.source, client.get_ref().clone()).await {
         Ok(resp) => {
-            match image_service::resize_service((&resp).to_vec(), ImageTransformOptions{fit: fit_mode, width: query.width, height: query.height, bg_color, dpr: query.dpr}) {
+            match image_service::resize_service((&resp).to_vec(), ImageTransformOptions { fit: fit_mode, width: query.width, height: query.height, bg_color, dpr: query.dpr, format: format.clone() }) {
                 Ok(result) => {
                     actix_web::HttpResponse::Ok()
-                        .content_type("image/jpeg")
+                        .content_type(match format.unwrap_or(Format::Auto) {
+                            Format::Auto |
+                            Format::Jpeg => "image/jpeg",
+                            Format::Gif => "image/gif",
+                            Format::Png => "image/png"
+                        })
                         .body(result)
-                },
+                }
                 Err(e) => {
                     actix_web::HttpResponse::InternalServerError().body(format!("Something went wrong transforming image: {}", e))
                 }

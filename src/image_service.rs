@@ -15,6 +15,14 @@ pub enum Fit {
     Cover,
 }
 
+#[derive(Debug, PartialEq, Clone)]
+pub enum Format {
+    Auto,
+    Gif,
+    Jpeg,
+    Png
+}
+
 impl FromStr for Fit {
     type Err = ();
 
@@ -30,12 +38,28 @@ impl FromStr for Fit {
     }
 }
 
+impl FromStr for Format {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "gif" => Ok(Format::Gif),
+            "jpeg" |
+            "jpg" => Ok(Format::Jpeg),
+            "png" => Ok(Format::Png),
+            "auto" => Ok(Format::Auto),
+            _ => Err(())
+        }
+    }
+}
+
 pub struct ImageTransformOptions {
     pub fit: Option<Fit>,
     pub width: Option<u32>,
     pub height: Option<u32>,
     pub bg_color: Option<Rgb<u8>>,
-    pub dpr: Option<u8>
+    pub dpr: Option<u8>,
+    pub format: Option<Format>
 }
 
 pub fn resize_service(
@@ -83,7 +107,12 @@ pub fn resize_service(
     img_for_processing
         .out_img
         .unwrap()
-        .write_to(&mut cursor, ImageFormat::Jpeg)
+        .write_to(&mut cursor, match options.format.unwrap_or(Format::Auto) {
+            Format::Gif => ImageFormat::Gif,
+            Format::Auto |
+            Format::Jpeg => ImageFormat::Jpeg,
+            Format::Png => ImageFormat::Png,
+        })
         .map_err(|_| "Failed to write image".to_string())?;
 
     Ok(buf)
