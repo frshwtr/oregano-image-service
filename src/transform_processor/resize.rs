@@ -17,10 +17,12 @@ impl Resize {
 impl TransformProcessor for Resize {
     fn handle(&mut self, processable_image: &mut ProcessableImage) {
         if !processable_image.process_record.is_image_resized {
+            let w = processable_image.process_options.resize.w * (processable_image.process_options.resize.dpr as u32);
+            let h = processable_image.process_options.resize.h * (processable_image.process_options.resize.dpr as u32);
             processable_image.out_img = match processable_image.process_options.resize.mode {
                 Fit::Pad => {
                     let mut img_canvas = processable_image.out_img.clone().unwrap();
-                    let img_overlay = processable_image.src_img.resize(processable_image.process_options.resize.w, processable_image.process_options.resize.h, image::imageops::FilterType::Lanczos3);
+                    let img_overlay = processable_image.src_img.resize(w, h, image::imageops::FilterType::Lanczos3);
                     let (overlay_width, overlay_height) = img_overlay.dimensions();
                     let offset_x = (processable_image.out_img.clone().unwrap().width() - overlay_width) / 2;
                     let offset_y = (processable_image.out_img.clone().unwrap().height() - overlay_height) / 2;
@@ -37,14 +39,14 @@ impl TransformProcessor for Resize {
                     Some(img_canvas)
                 }
                 Fit::ScaleDown => {
-                    Some(processable_image.src_img.thumbnail(processable_image.process_options.resize.w, processable_image.process_options.resize.h).to_rgb8())
+                    Some(processable_image.src_img.thumbnail(w, h).to_rgb8())
                 }
                 Fit::Fill => {
-                    Some(processable_image.src_img.resize_exact(processable_image.process_options.resize.w, processable_image.process_options.resize.h, image::imageops::FilterType::Lanczos3).to_rgb8())
+                    Some(processable_image.src_img.resize_exact(w, h, image::imageops::FilterType::Lanczos3).to_rgb8())
                 }
                 Fit::Cover |
                 _ => {
-                    Some(processable_image.src_img.resize_to_fill(processable_image.process_options.resize.w, processable_image.process_options.resize.h, image::imageops::FilterType::Lanczos3).to_rgb8())
+                    Some(processable_image.src_img.resize_to_fill(w, h, image::imageops::FilterType::Lanczos3).to_rgb8())
                 }
             };
 

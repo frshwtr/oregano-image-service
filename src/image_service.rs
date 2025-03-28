@@ -35,6 +35,7 @@ pub struct ImageTransformOptions {
     pub width: Option<u32>,
     pub height: Option<u32>,
     pub bg_color: Option<Rgb<u8>>,
+    pub dpr: Option<u8>
 }
 
 pub fn resize_service(
@@ -67,6 +68,7 @@ pub fn resize_service(
                 w: resize_width,
                 h: resize_height,
                 mode: options.fit.unwrap_or(Fit::Contain),
+                dpr: options.dpr.unwrap_or(1)
             },
             bg_color: options.bg_color,
         },

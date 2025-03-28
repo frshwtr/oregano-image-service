@@ -22,7 +22,8 @@ struct QueryParams {
     width: Option<u32>,
     height: Option<u32>,
     fit: Option<String>,
-    bgcolor: Option<String>
+    bgcolor: Option<String>,
+    dpr: Option<u8>
 }
 
 #[get("/raw/{source}")]
@@ -41,7 +42,7 @@ async fn raw(params: web::Path<PathParams>, query: web::Query<QueryParams>, clie
 
     match get_image(&params.source, client.get_ref().clone()).await {
         Ok(resp) => {
-            match image_service::resize_service((&resp).to_vec(), ImageTransformOptions{fit: fit_mode, width: query.width, height: query.height, bg_color}) {
+            match image_service::resize_service((&resp).to_vec(), ImageTransformOptions{fit: fit_mode, width: query.width, height: query.height, bg_color, dpr: query.dpr}) {
                 Ok(result) => {
                     actix_web::HttpResponse::Ok()
                         .content_type("image/jpeg")

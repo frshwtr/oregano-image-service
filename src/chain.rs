@@ -22,5 +22,6 @@ pub struct ProcessOptions {
 pub struct ResizeOptions {
     pub w: u32,
     pub h: u32,
-    pub mode: Fit
+    pub mode: Fit,
+    pub dpr: u8
 }
