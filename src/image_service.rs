@@ -11,6 +11,8 @@ pub enum Fit {
     Contain,
     Pad,
     ScaleDown,
+    Fill,
+    Cover,
 }
 
 impl FromStr for Fit {
@@ -21,6 +23,8 @@ impl FromStr for Fit {
             "pad" => Ok(Fit::Pad),
             "contain" => Ok(Fit::Contain),
             "scale-down" => Ok(Fit::ScaleDown),
+            "cover" => Ok(Fit::Cover),
+            "fill" => Ok(Fit::Fill),
             _ => Err(()),
         }
     }

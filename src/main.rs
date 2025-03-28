@@ -1,6 +1,5 @@
 pub mod image_service;
 mod transform_processor;
-mod transforms;
 mod chain;
 
 use std::str::FromStr;

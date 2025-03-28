@@ -1,11 +1,10 @@
-
 use image::{GenericImageView, Pixel};
 use crate::image_service::Fit;
 use crate::transform_processor::{into_next, TransformProcessor, ProcessableImage};
 
 #[derive(Default)]
 pub struct Resize {
-    next: Option<Box<dyn TransformProcessor>>
+    next: Option<Box<dyn TransformProcessor>>,
 }
 
 impl Resize {
@@ -36,17 +35,20 @@ impl TransformProcessor for Resize {
                         }
                     }
                     Some(img_canvas)
-                },
-                Fit::ScaleDown => {
-                     Some(processable_image.src_img.thumbnail(processable_image.process_options.resize.w, processable_image.process_options.resize.h).to_rgb8())
                 }
-                _ => {
+                Fit::ScaleDown => {
+                    Some(processable_image.src_img.thumbnail(processable_image.process_options.resize.w, processable_image.process_options.resize.h).to_rgb8())
+                }
+                Fit::Fill => {
                     Some(processable_image.src_img.resize_exact(processable_image.process_options.resize.w, processable_image.process_options.resize.h, image::imageops::FilterType::Lanczos3).to_rgb8())
+                }
+                Fit::Cover |
+                _ => {
+                    Some(processable_image.src_img.resize_to_fill(processable_image.process_options.resize.w, processable_image.process_options.resize.h, image::imageops::FilterType::Lanczos3).to_rgb8())
                 }
             };
 
             processable_image.process_record.is_image_resized = true;
-
         }
     }
 
