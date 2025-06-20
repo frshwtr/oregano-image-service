@@ -5,6 +5,7 @@ use image::{ImageFormat, Rgb};
 use std::error::Error;
 use std::io::Cursor;
 use std::str::FromStr;
+use image::codecs::jpeg::JpegEncoder;
 
 #[derive(Debug, PartialEq)]
 pub enum Fit {
@@ -20,7 +21,17 @@ pub enum Format {
     Auto,
     Gif,
     Jpeg,
-    Png
+    Png,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum Quality {
+    Lowest,
+    Low,
+    Medium,
+    High,
+    Highest,
+    Lossless,
 }
 
 impl FromStr for Fit {
@@ -53,13 +64,40 @@ impl FromStr for Format {
     }
 }
 
+impl FromStr for Quality {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "lowest" => Ok(Quality::Lowest),
+            "low" => Ok(Quality::Low),
+            "medium" => Ok(Quality::Medium),
+            "high" => Ok(Quality::High),
+            "highest" => Ok(Quality::Highest),
+            "lossless" => Ok(Quality::Lossless),
+            _ => Err(())
+        }
+    }
+}
+
+fn map_quality(q: Quality) -> u8 {
+    match q {
+        Quality::Lowest => 10,
+        Quality::Low => 30,
+        Quality::Medium => 50,
+        Quality::High => 75,
+        Quality::Highest => 95,
+        Quality::Lossless => 100,
+    }
+}
 pub struct ImageTransformOptions {
     pub fit: Option<Fit>,
     pub width: Option<u32>,
     pub height: Option<u32>,
     pub bg_color: Option<Rgb<u8>>,
     pub dpr: Option<u8>,
-    pub format: Option<Format>
+    pub format: Option<Format>,
+    pub quality: Option<Quality>,
 }
 
 pub fn resize_service(
@@ -92,7 +130,7 @@ pub fn resize_service(
                 w: resize_width,
                 h: resize_height,
                 mode: options.fit.unwrap_or(Fit::Contain),
-                dpr: options.dpr.unwrap_or(1)
+                dpr: options.dpr.unwrap_or(1),
             },
             bg_color: options.bg_color,
         },
@@ -104,16 +142,28 @@ pub fn resize_service(
     let mut buf = Vec::new();
     let mut cursor = Cursor::new(&mut buf);
 
-    img_for_processing
-        .out_img
-        .unwrap()
-        .write_to(&mut cursor, match options.format.unwrap_or(Format::Auto) {
-            Format::Gif => ImageFormat::Gif,
-            Format::Auto |
-            Format::Jpeg => ImageFormat::Jpeg,
-            Format::Png => ImageFormat::Png,
-        })
-        .map_err(|_| "Failed to write image".to_string())?;
+    match options.format.unwrap_or(Format::Auto) {
+        Format::Gif => {
+            img_for_processing
+                .out_img
+                .unwrap()
+                .write_to(&mut cursor, ImageFormat::Gif)
+                .map_err(|_| "Failed to write image".to_string())?;
+        }
+        Format::Png => {
+            img_for_processing
+                .out_img
+                .unwrap()
+                .write_to(&mut cursor, ImageFormat::Png)
+                .map_err(|_| "Failed to write image".to_string())?;
+        }
+        Format::Jpeg |
+        Format::Auto => {
+            let mut encoder = JpegEncoder::new_with_quality(&mut cursor, map_quality(options.quality.unwrap_or(Quality::Medium)));
+            encoder.encode_image(&img_for_processing.out_img.unwrap())?
+        }
+    }
+
 
     Ok(buf)
 }

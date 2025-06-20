@@ -10,7 +10,7 @@ use reqwest::Client;
 use std::sync::Arc;
 use actix_web::web::Bytes;
 use image::Rgb;
-use crate::image_service::{Fit, Format, ImageTransformOptions};
+use crate::image_service::{Fit, Format, ImageTransformOptions, Quality};
 
 #[derive(Deserialize)]
 struct PathParams {
@@ -25,12 +25,14 @@ struct QueryParams {
     bgcolor: Option<String>,
     dpr: Option<u8>,
     format: Option<String>,
+    quality: Option<String>
 }
 
 #[get("/raw/{source}")]
 async fn raw(params: web::Path<PathParams>, query: web::Query<QueryParams>, client: web::Data<Arc<Client>>) -> impl Responder {
     let fit_mode: Option<Fit> = query.fit.as_ref().map(|fit| Fit::from_str(fit.as_str()).unwrap());
     let format: Option<Format> = query.format.as_ref().map(|format| Format::from_str(format.as_str()).unwrap());
+    let quality: Option<Quality> = query.quality.as_ref().map(|quality| Quality::from_str(quality.as_str()).unwrap());
 
     let bg_color: Option<Rgb<u8>> = match query.bgcolor.as_ref() {
         Some(color) => {
@@ -44,7 +46,7 @@ async fn raw(params: web::Path<PathParams>, query: web::Query<QueryParams>, clie
 
     match get_image(&params.source, client.get_ref().clone()).await {
         Ok(resp) => {
-            match image_service::resize_service((&resp).to_vec(), ImageTransformOptions { fit: fit_mode, width: query.width, height: query.height, bg_color, dpr: query.dpr, format: format.clone() }) {
+            match image_service::resize_service((&resp).to_vec(), ImageTransformOptions { fit: fit_mode, width: query.width, height: query.height, bg_color, dpr: query.dpr, format: format.clone(), quality }) {
                 Ok(result) => {
                     actix_web::HttpResponse::Ok()
                         .content_type(match format.unwrap_or(Format::Auto) {
